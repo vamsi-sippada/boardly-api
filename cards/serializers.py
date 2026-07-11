@@ -66,6 +66,6 @@ class CardDetailSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Due date cannot be in the past.")
         return value
     
-class AssignMemberSerializer(serializers.ModelSerializer):
+class AssignMemberSerializer(serializers.Serializer):
     """Used for the assign-member action on a card."""
-    user_id = serializers.PrimaryKeyRelatedField(queryset=User.Objects.all())
+    user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())

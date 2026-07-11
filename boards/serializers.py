@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Board, BoardMember, BoardMembership, List
+from .models import Board, BoardMember, List
 
 User = get_user_model()
 
@@ -10,13 +10,13 @@ class BoardMemberSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email', read_only=True)
 
     class Meta:
-        model = BoardMembership
+        model = BoardMember
         fields = ['id', 'user', 'username', 'email', 'role', 'joined_at']
         read_only_fields = ['id', 'joined_at']
 
 class AddMemberSerializer(serializers.ModelSerializer):
     """Used for the add-member action — validates incoming user_id and role."""
-    user_id = serializers.PrimaryKeyRelatedField(queryset=User.Objects.all())
+    user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     role = serializers.ChoiceField(choices=BoardMember.Role.choices, default=BoardMember.Role.MEMBER)
 
 class ListSerializer(serializers.ModelSerializer):
