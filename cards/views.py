@@ -10,17 +10,11 @@ from .serializers import (
     CommentSerializer, ActivityLogSerializer,
     AssignMemberSerializer
 )
+from .permissions import IsCardBoardMember, IsCommentAuthorOrBoardOwner
 
 
 class CardViewSet(viewsets.ModelViewSet):
-    """
-    Nested under lists:
-    GET  /api/boards/{board_id}/lists/{list_id}/cards/
-    POST /api/boards/{board_id}/lists/{list_id}/cards/
-    GET  /api/boards/{board_id}/lists/{list_id}/cards/{id}/
-    etc.
-    """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsCardBoardMember]
 
     def get_queryset(self):
         return Card.objects.filter(
@@ -43,6 +37,16 @@ class CardViewSet(viewsets.ModelViewSet):
             pk=self.kwargs['list_id'],
             board__memberships__user=self.request.user
         )
+        # Viewers cannot create cards
+        membership = get_object_or_404(
+            BoardMember,
+            board=list_obj.board,
+            user=self.request.user
+        )
+        if membership.role == BoardMember.Role.VIEWER:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Viewers cannot create cards.')
+
         serializer.save(
             list=list_obj,
             created_by=self.request.user
@@ -50,18 +54,13 @@ class CardViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='assign')
     def assign_member(self, request, **kwargs):
-        """
-        POST /api/.../cards/{id}/assign/
-        Body: {"user_id": 3}
-        """
         card = self.get_object()
         serializer = AssignMemberSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data['user_id']
-
-        # Verify user is a board member before assigning
         board = card.list.board
+
         if not BoardMember.objects.filter(board=board, user=user).exists():
             return Response(
                 {'detail': 'User is not a member of this board.'},
@@ -77,20 +76,13 @@ class CardViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['delete'],
             url_path='unassign/(?P<user_id>[^/.]+)')
     def unassign_member(self, request, user_id=None, **kwargs):
-        """DELETE /api/.../cards/{id}/unassign/{user_id}/"""
         card = self.get_object()
         CardMember.objects.filter(card=card, user_id=user_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    """
-    Nested under cards:
-    GET  /api/.../cards/{card_id}/comments/
-    POST /api/.../cards/{card_id}/comments/
-    """
-    serializer_class   = CommentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsCommentAuthorOrBoardOwner]
 
     def get_queryset(self):
         return Comment.objects.filter(
@@ -108,10 +100,6 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class ActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    GET /api/.../cards/{card_id}/activity/
-    Read only — activity is created by signals, not the client.
-    """
     serializer_class   = ActivityLogSerializer
     permission_classes = [permissions.IsAuthenticated]
 
