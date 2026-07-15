@@ -36,7 +36,7 @@ class CardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Card
         fields = ['id', 'title', 'status', 'priority', 'due_date', 'position', 'is_overdue', 'list']
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'list']
 
     def get_is_overdue(self, obj):
         if not obj.due_date:

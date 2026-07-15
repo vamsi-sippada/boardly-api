@@ -52,6 +52,12 @@ class CardViewSet(viewsets.ModelViewSet):
             created_by=self.request.user
         )
 
+    def perform_update(self, serializer):
+        # Attach request.user to instance so the signal can access it
+        instance = serializer.instance
+        instance._updated_by = self.request.user
+        serializer.save()
+
     @action(detail=True, methods=['post'], url_path='assign')
     def assign_member(self, request, **kwargs):
         card = self.get_object()

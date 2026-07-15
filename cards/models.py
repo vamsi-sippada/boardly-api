@@ -72,7 +72,7 @@ class Comment(models.Model):
     
 class ActivityLog(models.Model):
     card = models.ForeignKey(Card, on_delete=models.CASCADE, related_name='activity_logs')
-    user = models.ForeignKey(
+    actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,

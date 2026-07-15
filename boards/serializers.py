@@ -14,7 +14,7 @@ class BoardMemberSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'username', 'email', 'role', 'joined_at']
         read_only_fields = ['id', 'joined_at']
 
-class AddMemberSerializer(serializers.ModelSerializer):
+class AddMemberSerializer(serializers.Serializer):
     """Used for the add-member action — validates incoming user_id and role."""
     user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     role = serializers.ChoiceField(choices=BoardMember.Role.choices, default=BoardMember.Role.MEMBER)
@@ -22,7 +22,7 @@ class AddMemberSerializer(serializers.ModelSerializer):
 class ListSerializer(serializers.ModelSerializer):
     class Meta:
         model = List
-        fields = ['id', 'name', 'position', 'board']
+        fields = ['id', 'title', 'position', 'board']
         read_only_fields = ['id', 'board']
 
 class BoardSerializer(serializers.ModelSerializer):
@@ -33,7 +33,7 @@ class BoardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Board
         fields = ['id', 'title', 'description','visibility' ,'owner', 'owner_username', 'member_count', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'owner', 'created_at']
 
     def get_member_count(self, obj):
         return obj.memberships.count()
