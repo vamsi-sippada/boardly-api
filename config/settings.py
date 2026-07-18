@@ -130,3 +130,19 @@ AUTH_USER_MODEL = 'users.User'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'send-due-date-reminders': {
+        'task': 'notifications.tasks.send_due_date_reminders',
+        'schedule': crontab(hour=8, minute=0),  # every day at 8:00 AM UTC
+    },
+    'send-overdue-notifications': {
+        'task': 'notifications.tasks.send_overdue_notifications',
+        'schedule': crontab(hour=9, minute=0),  # every day at 9:00 AM UTC
+    },
+}
