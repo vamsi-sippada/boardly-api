@@ -24,8 +24,11 @@ environ.Env.read_env(BASE_DIR / '.env')
 
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-
+ALLOWED_HOSTS = [
+    'boardly-api-hfay.onrender.com',
+    'localhost',
+    '127.0.0.1',
+]
 # ─── Apps ────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     'django.contrib.admin',
